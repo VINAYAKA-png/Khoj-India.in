@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Khoj India.in — simple Google-like search</title>
+  <style>
+    :root{--bg:#ffffff;--muted:#70757a;--accent:#1a73e8}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:var(--bg);color:#202124;display:flex;align-items:flex-start;justify-content:center;padding-top:6vh}
+    .container{width:740px;max-width:94%;text-align:center}
+    .logo{margin-bottom:22px}
+    .logo img{max-width:260px;height:auto}
+
+    .search-box{background:#fff;border:1px solid #dfe1e5;border-radius:24px;padding:12px 16px;display:flex;align-items:center;box-shadow:0 1px 6px rgba(32,33,36,0.28)}
+    .search-box input{flex:1;border:0;outline:none;font-size:18px}
+    .icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .controls{margin-top:18px;display:flex;gap:12px;justify-content:center}
+    .btn{padding:8px 16px;border-radius:4px;border:1px solid #dadce0;background:#f8f9fa;cursor:pointer}
+    .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+
+    /* Results */
+    .results{margin-top:28px;text-align:left}
+    .result{padding:14px 0;border-bottom:1px solid #eee}
+    .result a.title{color:#1a0dab;font-size:18px;text-decoration:none}
+    .result .link{color:#006621;font-size:14px}
+    .result p{color:var(--muted);margin:6px 0 0}
+
+    .prefs{margin-top:14px;color:var(--muted);font-size:13px}
+    .footer{margin-top:40px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* News section */
+    .news-section{margin-top:60px;text-align:left}
+    .news-section h2{font-size:20px;margin-bottom:12px;color:#202124}
+    .news-item{margin-bottom:16px}
+    .news-item a{font-size:16px;color:#1a0dab;text-decoration:none}
+    .news-item p{margin:4px 0 0;color:var(--muted);font-size:14px}
+
+    @media (max-width:520px){.logo img{max-width:180px}.search-box input{font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="Gemini_Generated_Image_mi5lrhmi5lrhmi5l-removebg-preview.png" alt="Khoj India.in Logo" />
+    </div>
+
+    <form id="searchForm" onsubmit="return doSearch(event)">
+      <div class="search-box">
+        <input id="q" name="q" type="search" placeholder="Search the web" autocomplete="off" autofocus />
+        <div id="clear" class="icon" title="Clear" style="display:none">✕</div>
+      </div>
+
+      <div class="controls">
+        <button type="submit" class="btn primary">Search</button>
+        <button type="button" id="lucky" class="btn">I'm Feeling Lucky</button>
+
+        <label style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <input type="checkbox" id="useReal" />
+          <span style="font-size:13px;color:var(--muted)">Use real search (Google)</span>
+        </label>
+      </div>
+    </form>
+
+    <div id="results" class="results" style="display:none"></div>
+
+    <div class="prefs">Tip: Toggle "Use real search" to send queries to Google. The default shows a simulated results preview so you can host locally without backend.</div>
+
+    <div class="footer">Khoj India.in — a lightweight, single-file Google-like search mockup</div>
+
+    <!-- Indian News Section -->
+    <div class="news-section" id="news">
+      <h2>🇮🇳 Latest Indian News</h2>
+      <div class="news-item">
+        <a href="#" target="_blank">India achieves new milestone in space research</a>
+        <p>ISRO launches advanced satellite for communication and navigation.</p>
+      </div>
+      <div class="news-item">
+        <a href="#" target="_blank">Economic growth shows strong recovery</a>
+        <p>India's GDP growth rate surpasses expectations in the last quarter.</p>
+      </div>
+      <div class="news-item">
+        <a href="#" target="_blank">Indian cricket team registers historic win</a>
+        <p>Team India secures series victory with record-breaking performance.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const q = document.getElementById('q');
+    const clear = document.getElementById('clear');
+    const results = document.getElementById('results');
+    const useReal = document.getElementById('useReal');
+
+    q.addEventListener('input', ()=>{ clear.style.display = q.value ? 'flex' : 'none'; });
+    clear.addEventListener('click', ()=>{ q.value=''; q.focus(); clear.style.display='none'; results.style.display='none'; });
+
+    function doSearch(e){
+      e.preventDefault();
+      const query = (q.value||'').trim();
+      if(!query) return false;
+      if(useReal.checked){
+        const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+        window.location.href = url;
+        return false;
+      }
+      renderSimulatedResults(query);
+      return false;
+    }
+
+    document.getElementById('lucky').addEventListener('click', ()=>{
+      const query = (q.value||'').trim();
+      if(!query) return;
+      if(useReal.checked){
+        const url = 'https://www.google.com/search?btnI=I&q=' + encodeURIComponent(query);
+        window.location.href = url;
+        return;
+      }
+      const top = buildResultLink(query,0);
+      window.open(top.link, '_blank');
+    });
+
+    function buildResultLink(query,index){
+      const base = 'https://example.com/search';
+      const link = `${base}?q=${encodeURIComponent(query)}&r=${index}`;
+      const title = `${query} — result ${index+1}`;
+      const snippet = `This is a simulated result for \"${query}\". Use the \"Use real search\" toggle to send queries to Google.`;
+      return {link,title,snippet};
+    }
+
+    function renderSimulatedResults(query){
+      results.innerHTML = '';
+      results.style.display = 'block';
+      for(let i=0;i<8;i++){
+        const r = buildResultLink(query,i);
+        const div = document.createElement('div');
+        div.className = 'result';
+        div.innerHTML = `<div class=\"link\">${r.link}</div><a class=\"title\" href=\"${r.link}\" target=\"_blank\" rel=\"noopener\">${escapeHtml(r.title)}</a><p>${escapeHtml(r.snippet)}</p>`;
+        results.appendChild(div);
+      }
+    }
+
+    function escapeHtml(s){ return s.replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c])); }
+  </script>
+</body>
+</html>
